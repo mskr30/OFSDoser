@@ -127,7 +127,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/TextView02"
         android:layout_below="@+id/tvThreads"
-        android:text="128" />
+        android:text="64" />
 
     <TextView
         android:id="@+id/textView0002"
@@ -143,7 +143,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/tvThreads"
-        android:text="256" />
+        android:text="128" />
 
     <SeekBar
         android:id="@+id/sbHashThreads"

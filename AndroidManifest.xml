@@ -24,7 +24,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.PrefActivity" />
+        <activity
+            android:name=".activities.PrefActivity"
+            android:parentActivityName="net.openfiresecurity.ofsdoser.MainActivity" />
+
+        <service
+            android:name=".services.DosService"
+            android:isolatedProcess="false" />
     </application>
 
 </manifest>

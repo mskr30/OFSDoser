@@ -2,3 +2,5 @@
 .gradle/
 build/
 *.iml
+*.apk
+build.gradle
