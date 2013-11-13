@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
     <string name="app_name">OFS DoSer</string>
-    <string name="prefstitlelayout">Layout</string>
-    <string name="prefstitlesplashscreen">SplashScreen</string>
-    <string name="prefssummarysplashscreen">Enables/Disables the SplashScreen</string>
-    <string name="prefssummarystartupdialog">Enables/Disables the Dialog on Appstart</string>
-    <string name="prefstitlestartupdialog">Startup Dialog</string>
+
+    <!-- Actions -->
+    <string name="action_press_again">Press once again to exit!</string>
+
+    <!-- Preferences -->
+    <string name="pref_extensive_logging_title">Extensive Logging</string>
+    <string name="pref_extensive_logging_summary">Log debug messages to LogCat.</string>
+
+    <!-- PreferenceFragment -->
+    <!--  Strings for possible PreferenceActivity Back/Next buttons -->
+    <string name="back_button_label">Back</string>
+    <string name="next_button_label">Next</string>
+
+    <!-- Optional button to Skip a PreferenceActivity [CHAR LIMIT=20] -->
+    <string name="skip_button_label">Skip</string>
 </resources>
